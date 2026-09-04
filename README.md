@@ -1,109 +1,149 @@
-# Family Care V2
+# Family Care
 
-This version follows the reference screens you provided:
-- Welcome / Get Started
-- Create account
-- Login
-- Family setup + invite code
-- People dashboard
-- Recipient detail
-- Timeline
-- Add update
-- Medication / appointment / note entry
-- Reminders
-- More / family members / notifications / settings
+Family Care is a shared family-care coordination application designed to help families keep important care information, appointments, reminders, and updates organized in one place.
 
-## Stack
+The application focuses on **care coordination and memory**, not medical diagnosis.
 
-Flutter + Supabase + PostgreSQL.
+## Project Purpose
 
-## 1. Create the Flutter platform files
+Families often share responsibility for caring for parents, children, siblings, or other relatives. Important information can easily become scattered across WhatsApp messages, phone calls, notebooks, and personal calendars.
 
-From this folder:
+Family Care provides a simple shared space where family members can keep track of:
 
-```bash
-flutter create .
-```
+- People they care for
+- Important care information
+- Appointments and care updates
+- Medication and other reminders
+- Family activity and check-ins
+- A chronological care timeline
+- Important things to remember
 
-Then:
+The goal is to make family care more coordinated, visible, and less dependent on one person remembering everything.
 
-```bash
-flutter pub get
-```
+---
 
-## 2. Supabase
+## Features
 
-Open Supabase SQL Editor and run `supabase_schema.sql`.
+### Family Management
 
-Use your publishable/anon key in the Flutter app. Never put a service-role/secret key in Flutter.
+- Create a family
+- Join a family using an invite code
+- Share care responsibilities with family members
+- Family-based access to care information
 
-Run:
+### People
 
-```bash
-flutter run -d chrome \
-  --dart-define=SUPABASE_URL=https://YOUR_PROJECT.supabase.co \
-  --dart-define=SUPABASE_ANON_KEY=YOUR_PUBLISHABLE_KEY
-```
+Add people the family cares for, including:
 
-## 3. Account fields
+- Name
+- Relationship
+- Date of birth
+- Notes
+- Important things to remember
 
-Create account asks for:
-- Full name
-- Phone number
-- National ID (optional)
-- Email
-- Password
-- Confirm password
+###  Care Updates
 
-National ID is sensitive personal data. Keep it optional and only collect it if you have a clear lawful purpose. The RLS policy in this MVP lets a user read/update their own profile only.
+Family members can record updates such as:
 
-## 4. Notifications
+- Doctor appointments
+- Hospital visits
+- Medication changes
+- General care updates
+- Important events
 
-### App notifications
+Each update can include:
 
-`flutter_local_notifications` is included.
+- Title
+- Description
+- Date
+- Person it relates to
 
-On Android/iOS, reminders created in the app are scheduled on the device.
+###  Timeline
 
-On the web, browsers have limitations around future scheduled notifications. The app therefore treats Supabase + email delivery as the reliable server-side reminder path. The web notification permission can still be requested from More > Notifications.
+The timeline provides a chronological view of family-care updates.
 
-### Email reminders
+Recent events appear first so family members can quickly understand what has happened recently.
 
-The included Edge Function is:
+###  Reminders
 
-`supabase/functions/send_reminders/index.ts`
+Create reminders for important care activities.
 
-It sends due reminders through Resend.
+Reminders support:
 
-Deploy:
+- Reminder title
+- Date and time
+- Email notification preference
+- Push/local notification preference
+- Completion status
 
-```bash
-supabase login
-supabase link --project-ref YOUR_PROJECT_REF
-supabase secrets set RESEND_API_KEY=YOUR_RESEND_KEY
-supabase functions deploy send_reminders
-```
+### Notifications
 
-Then schedule it with Supabase Cron to run every minute. The Supabase Dashboard can create a Cron job that invokes the Edge Function.
+The project is designed to support:
 
-Change the `from` email in the function to an address on a verified domain.
+- Local notifications on mobile
+- Email reminders through Supabase Edge Functions
+- Resend for transactional email
+- Supabase Cron for scheduled reminder processing
+- Firebase Cloud Messaging for future server-triggered push notifications
 
-## 5. Hosting
+Web notification support can be added separately because browser background scheduling has different limitations from native mobile applications.
 
-For a normal public web version:
+---
 
-```bash
-flutter build web --release
-```
+# 🛠️ Technology Stack
 
-The output is in `build/web`.
+## Frontend
 
-You can deploy that folder to Vercel, Firebase Hosting, Cloudflare Pages, Netlify, or another static host.
+- Flutter
+- Dart
+- Material Design
+- `supabase_flutter`
+- `flutter_local_notifications`
+- `intl`
+- `timezone`
 
-For this project, I recommend Vercel or Firebase Hosting for the web URL, and Supabase for the backend.
+## Backend
 
-Appetize is better for demos/testing of an Android/iOS build in a browser. It is not the same as hosting your production Flutter web app. Appetize can give you a share link for a specific mobile build.
+- Supabase
+- PostgreSQL
+- Supabase Auth
+- Row Level Security (RLS)
+- Supabase Edge Functions
+- Supabase Cron
 
-## Important
+## Hosting
 
-This is a family coordination app, not a diagnosis or emergency-care system. Do not rely on it for urgent medical decisions. Before real-world use, add stronger privacy controls, audit logging, data retention/deletion rules, consent flows, backups, and a security review.
+- Vercel for Flutter Web deployment
+
+## Planned Notification Services
+
+- Resend for email
+- Firebase Cloud Messaging for future push notifications
+
+---
+
+# Architecture
+
+```text
+                    ┌─────────────────────┐
+                    │     Family Care     │
+                    │    Flutter Web/App  │
+                    └──────────┬──────────┘
+                               │
+                               │ supabase_flutter
+                               ▼
+                    ┌─────────────────────┐
+                    │      Supabase       │
+                    ├─────────────────────┤
+                    │ Authentication      │
+                    │ PostgreSQL           │
+                    │ Row Level Security   │
+                    │ Storage (optional)   │
+                    │ Edge Functions      │
+                    │ Cron                │
+                    └──────────┬──────────┘
+                               │
+                    ┌──────────┴──────────┐
+                    ▼                     ▼
+              Email Service         Push Services
+                 Resend             FCM / Local

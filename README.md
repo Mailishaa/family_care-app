@@ -90,7 +90,7 @@ Web notification support can be added separately because browser background sche
 
 ---
 
-# 🛠️ Technology Stack
+# Technology Stack
 
 ## Frontend
 
